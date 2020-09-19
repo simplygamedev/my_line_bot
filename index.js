@@ -2,7 +2,6 @@
 
 const line = require('@line/bot-sdk');
 const express = require('express');
-const AWS = require('aws-sdk');
 
 // create LINE SDK config from env variables
 const config = {
@@ -10,11 +9,6 @@ const config = {
   channelSecret: process.env.CHANNEL_SECRET,
 };
 
-//AWS Config
-AWS.config.update({region: 'ap-southeast-1'});
-
-// Create S3 service object
-s3 = new AWS.S3({apiVersion: '2006-03-01'});
 
 // create LINE SDK client
 const client = new line.Client(config);
