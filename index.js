@@ -19,29 +19,28 @@ const app = express();
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
 app.post('/callback', 
-  line.middleware(config), 
-  (req, res, next)=>{
+  line.middleware(config), (req, res) => {
 
     const signature = crypto
       .createHmac('SHA256', config.channelSecret)
       .update(JSON.stringify(req.body)).digest('base64');
 
-      // Compare X-Line-Signature request header and the signature
       console.log(signature, req.headers['x-line-signature']);
-      if(signature === req.headers['x-line-signature'])
-        next();
-      
-      console.error('Invalid Message Signature In Request');
-      res.end();
-  }, 
-  (req, res) => {
-    Promise
-      .all(req.body.events.map(handleEvent))
-      .then((result) => res.status(200).json(result))
-      .catch((err) => {
-        console.error(err);
-        res.status(500).end();
-      });
+
+      // Compare X-Line-Signature request header and the signature
+      if(signature === req.headers['x-line-signature']){
+        Promise
+          .all(req.body.events.map(handleEvent))
+          .then((result) => res.status(200).json(result))
+          .catch((err) => {
+            console.error(err);
+            res.status(500).end();
+          });
+      }
+      else {
+        console.error('Invalid Message Signature In Request');
+        res.status(403).end();
+      }
   }
 );
 
