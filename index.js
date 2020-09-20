@@ -27,9 +27,8 @@ app.post('/callback',
       .update(JSON.stringify(req.body)).digest('base64');
 
       // Compare X-Line-Signature request header and the signature
-      console.log(req.headers);
-      console.log(signature, req.headers('X-Line-Signature'));
-      if(signature === req.headers('X-Line-Signature'))
+      console.log(signature, req.headers['x-line-signature']);
+      if(signature === req.headers['x-line-signature'])
         next();
       
       console.error('Invalid Message Signature In Request');
