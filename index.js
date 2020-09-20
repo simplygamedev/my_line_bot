@@ -24,7 +24,7 @@ app.post('/callback',
 
     const signature = crypto
       .createHmac('SHA256', config.channelSecret)
-      .update(req.body).digest('base64');
+      .update(JSON.stringify(req.body)).digest('base64');
 
       // Compare X-Line-Signature request header and the signature
       if(signature === req.get('X-Line-Signature'))
