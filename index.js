@@ -3,12 +3,13 @@
 const line = require('@line/bot-sdk');
 const express = require('express');
 
+const crypto = require('crypto');
+
 // create LINE SDK config from env variables
 const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
   channelSecret: process.env.CHANNEL_SECRET,
 };
-
 
 // create LINE SDK client
 const client = new line.Client(config);
@@ -17,15 +18,31 @@ const app = express();
 
 // register a webhook handler with middleware
 // about the middleware, please refer to doc
-app.post('/callback', line.middleware(config), (req, res) => {
-  Promise
-    .all(req.body.events.map(handleEvent))
-    .then((result) => res.status(200).json(result))
-    .catch((err) => {
-      console.error(err);
-      res.status(500).end();
-    });
-});
+app.post('/callback', 
+  line.middleware(config), 
+  (req, res, next)=>{
+
+    const signature = crypto
+      .createHmac('SHA256', config.channelSecret)
+      .update(req.body).digest('base64');
+
+      // Compare X-Line-Signature request header and the signature
+      if(signature === req.get('X-Line-Signature'))
+        next();
+      
+      console.error('Invalid Message Signature In Request');
+      res.status(403).end();
+  }, 
+  (req, res) => {
+    Promise
+      .all(req.body.events.map(handleEvent))
+      .then((result) => res.status(200).json(result))
+      .catch((err) => {
+        console.error(err);
+        res.status(500).end();
+      });
+  }
+);
 
 // event handler
 function handleEvent(event) {
